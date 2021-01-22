@@ -2,86 +2,118 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using MesgakiManagement.Entity;
 
-public class CustomerQueue : MonoBehaviour
+
+namespace MesgakiManagement.UI
 {
-    [SerializeField] GameObject customerQueue;
-
-    // Imageプレハブ
-    [SerializeField] GameObject customerQueueImage;
-
-    // Image配置枠のプレハブ
-    [SerializeField] GameObject customerQueueImageSlot;
-
-    // 親オブジェクトの指定
-    [SerializeField] Transform queueParent;
-
-    // 親オブジェクトの指定
-    [SerializeField] Transform characterParent;
-
-    // 基準点用
-    [SerializeField] Image firstCustomerImage;
-
-    // 現在のキュー内の客アイコン数
-    private int currentQueueMax = 0;
-
-    GameObject queueImageInstance;
-
-    private float firstX;
-    private float firstY;
-    private float firstZ;
-
-
-
-    GameObject slotInstance;
-    GameObject childGameObject;
-    RectTransform childTransform;
-
-    // Start is called before the first frame update
-    void Start()
+    public class Queue : EntityBase
     {
-        Debug.Log("プレハブ存在チェック：" + customerQueueImage);
+        // Imageを包む上位オブジェクト
+        public GameObject slotInstance;
 
-        //Vector3 first = firstCustomerImage.rectTransform.position;
-        RectTransform slot = customerQueueImageSlot.GetComponent<RectTransform>();
-        Vector3 first = slot.position;
+        // キューのImageの座標
+        public RectTransform imageTransform;
 
-        // 初期座標取_得
-        firstX = first.x;
-        firstY = first.y;
-        firstZ = first.z;
+        // 生成後の経過時間（移動アニメーションなどに使用）
+        public float elapsedTimer;
 
-
-        addQueue();
-        
+        public Queue(GameObject slotInstance, RectTransform imageTransform, float elapsedTimer)
+        {
+            this.slotInstance = slotInstance;
+            this.imageTransform = imageTransform;
+            this.elapsedTimer = elapsedTimer;
+        }
     }
-
-    private float MoveTimer;
-
-    // Update is called once per frame
-    void Update()
+    public class CustomerQueue : MonoBehaviour
     {
-        var sumTime = 0f;
-        var flag = true;
+        // Image配置枠のプレハブ
+        [SerializeField] GameObject customerQueueImageSlot;
 
-        MoveTimer += Time.deltaTime;
+        // 親オブジェクトの指定
+        [SerializeField] Transform queueParent;
 
-        Debug.Log("時間測定：" + MoveTimer);
+        private string CREATE_OBJECT_NAME = "CustomerQueueImageSlot";
 
-        childTransform.localPosition = Vector3.Lerp(new Vector2(300, 0), new Vector2(0, 0), MoveTimer * 2);
-    }
+        // 現在のキュー内の客アイコン数
+        private int currentQueueMax = 0;
 
-    void addQueue()
-    {
-        // プレハブを元にオブジェクトを生成する
-        slotInstance = (GameObject)Instantiate(
-            customerQueueImageSlot
-            , new Vector3(firstX, firstY, firstZ)
-            , Quaternion.identity
-            , queueParent);
-        childGameObject = slotInstance.transform.GetChild(0).gameObject;
-        childTransform = childGameObject.GetComponent<RectTransform>();
+        private List<Queue> customers = new List<Queue>();
 
-        slotInstance.name = "CustomerQueueImageSlot" + (currentQueueMax + 1).ToString();
+        // Start is called before the first frame update
+        void Start()
+        {
+            // TODO: Mockオブジェクトの削除
+            foreach (Transform n in queueParent.transform)
+            {
+                GameObject.Destroy(n.gameObject);
+            }
+
+            addQueue();
+            addQueue();
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+            // NOTE: Time.deltaTime = 直前のフレームと今のフレーム間で経過した時間
+
+            //childTransform.localPosition = Vector3.Lerp(new Vector2(300, 0), new Vector2(0, 0), MoveTimer * 2);
+            foreach(Queue q in customers)
+            {
+                timeCount(q);
+
+                // アニメーションが終わったら移動アニメーションの計算を行わない
+                if (q.elapsedTimer <= 1f)
+                {
+                    positionMove(q);
+                }
+            }
+
+        }
+
+        /// <summary>
+        /// 生成後の経過時間カウントアップ
+        /// </summary>
+        /// <param name="q">対象のオブジェクト</param>
+        void timeCount(Queue q)
+        {
+            q.elapsedTimer += Time.deltaTime;
+        }
+
+        /// <summary>
+        /// Imageの移動アニメーション
+        /// </summary>
+        /// <param name="q">対象のオブジェクト</param>
+        void positionMove(Queue q)
+        {
+            q.imageTransform.localPosition = Vector3.Lerp(new Vector2(300, 0), new Vector2(0, 0), q.elapsedTimer * 2);
+        }
+
+        /// <summary>
+        /// キューに客オブジェクト追加
+        /// </summary>
+        void addQueue()
+        {
+            // プレハブを元にオブジェクトを生成する
+            var s = (GameObject)Instantiate(
+                customerQueueImageSlot
+                , new Vector3(0f, 0f, 0f) // LayoutGroupが整列させるので気にしなくて良し
+                , Quaternion.identity
+                , queueParent);
+
+            // キューのカウントアップ
+            currentQueueMax++;
+
+            // オブジェクトの名前設定
+            s.name = CREATE_OBJECT_NAME + currentQueueMax.ToString();
+
+            var i = s.transform.GetChild(0).gameObject;
+            var t = i.GetComponent<RectTransform>();
+
+            Queue q = new Queue(s, t, 0f);
+
+            customers.Add(q);
+        }
     }
 }
