@@ -7,8 +7,11 @@ namespace MesgakiManagement.Entity
 {    
     public class Mesgaki : EntityBase
     {
+        // 画像スプライト保持用
+        public Sprite image = null;
+
         // 名前
-        public CharacterName name;
+        public CharacterName name = new CharacterName("");
         // 搾精力（基礎攻撃力）
         public MesgakiAttackPoint attackPoint;
         // 体力（HP）

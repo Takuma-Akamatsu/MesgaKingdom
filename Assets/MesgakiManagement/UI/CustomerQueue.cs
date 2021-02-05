@@ -49,8 +49,9 @@ namespace MesgakiManagement.UI
                 GameObject.Destroy(n.gameObject);
             }
 
-            addQueue();
-            addQueue();
+            // TODO: 動作確認用
+            //addQueue();
+            //addQueue();
         }
 
         // Update is called once per frame
@@ -93,7 +94,7 @@ namespace MesgakiManagement.UI
         /// <summary>
         /// キューに客オブジェクト追加
         /// </summary>
-        void addQueue()
+        public void addQueue()
         {
             // プレハブを元にオブジェクトを生成する
             var s = (GameObject)Instantiate(

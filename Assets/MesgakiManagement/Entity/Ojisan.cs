@@ -9,6 +9,8 @@ namespace MesgakiManagement.Entity
     {
         // 名前
         public CharacterName name;
+        // 所属
+        public CustomerCommunity community;
         // 搾精力（基礎攻撃力）
         public OjisanAttackPoint attackPoint;
         // 体力（HP）
